@@ -1,0 +1,68 @@
+{% extends 'index.html' %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Product List</h2>
+
+    <!-- Search Bar -->
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'product_create' %}" class="btn btn-primary">Add Product</a>
+        <form method="GET" class="d-flex" style="max-width: 400px;">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search products..." value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-outline-success">Search</button>
+        </form>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Purchase Price</th>
+                <th>Stock</th>
+                <th>Category</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                <td>${{ product.purchase_price }}</td>
+                <td>{{ product.stock }}</td>
+                <td>{{ product.category.name }}</td>
+                <td>{{ product.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ product.updated_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="{% url 'product_update' product.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{% url 'product_delete' product.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No products available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .table {
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+        text-align: center;
+        vertical-align: middle;
+    }
+    .btn-sm {
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'index.html' %}
+
+{% block content %}
+  <h2>Create Transaction for PIO: {{ pio.pio_number }} and Customer: {{ customer.name }}</h2>
+
+  <form method="POST" action="{% url 'create_transaction' pio_id=pio.id customer_id=customer.id %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Create Transaction</button>
+  </form>
+
+  <br>
+  <a href="{% url 'customer_detail' pk=customer.id %}">Back to Customer Details</a>
+{% endblock %}

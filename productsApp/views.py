@@ -1,21 +1,42 @@
-from django.shortcuts import render
+
 
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product
+
 from .forms import ProductForm
 
 # List All Products
-from django.shortcuts import render
+
+
+from django.utils.dateparse import parse_date
 from .models import Product
-
+from django.db.models import Q
 def product_list(request):
-    query = request.GET.get('q', '')  # Get the search term
     products = Product.objects.all()
-
+    query = request.GET.get('q', '')
+    # Get date range from request
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
     if query:
-        products = products.filter(name__icontains=query)  # Case-insensitive search
+        products = products.filter(
+            Q(name__icontains=query) | 
+            Q(category__name__icontains=query)
+        )
 
-    return render(request, 'productsApp/product_list.html', {'products': products})
+    if start_date and end_date:
+        start_date = parse_date(start_date)
+        end_date = parse_date(end_date)
+
+        if start_date and end_date:
+            products = products.filter(updated_at__date__range=[start_date, end_date])
+
+    context = {
+        'products': products,
+        'start_date': request.GET.get('start_date', ''),
+        'end_date': request.GET.get('end_date', ''),
+        'query': query,
+    }
+    return render(request, 'productsApp/product_list.html', context)
+
 
 # Create a New Product
 def product_create(request):

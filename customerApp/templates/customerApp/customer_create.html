@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+
+{% block content %}
+  <h2 class="text-center mb-4">Create New Customer</h2>
+
+  <form method="POST" class="container">
+    {% csrf_token %}
+    <div class="mb-3">
+      {{ form.as_p }}  <!-- Render the form fields -->
+    </div>
+    <button type="submit" class="btn btn-success w-100">Save Customer</button>
+  </form>
+
+  <br>
+  <a href="{% url 'customer_list' %}" class="btn btn-link">Back to Customer List</a>
+{% endblock %}

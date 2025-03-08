@@ -1,0 +1,106 @@
+{% extends 'index.html' %}
+
+{% block content %}
+  <h2>Customer List</h2>
+
+  <!-- Create Customer Button -->
+  <a href="{% url 'customer_create' %}">Create New Customer</a>
+
+  <br><br>
+
+ <!-- Search and Filter Form -->
+ <form method="GET" class="mb-4">
+    <div class="row">
+      <!-- Search Input -->
+      <div class="col-md-3">
+        <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search by Name">
+      </div>
+
+      <!-- Category Dropdown -->
+      <div class="col-md-3">
+        <select name="category" id="category" class="form-control">
+            <option value="">-- All Categories --</option>
+            <option value="buyer" {% if category_filter == 'buyer' %}selected{% endif %}>Buyer</option>
+            <option value="seller" {% if category_filter == 'seller' %}selected{% endif %}>Seller</option>
+          </select>
+      </div>
+
+      <!-- Date Range Filters -->
+      <div class="col-md-3">
+        <input type="date" name="start_date" value="{{ start_date }}" class="form-control" placeholder="Start Date">
+      </div>
+      <div class="col-md-3">
+        <input type="date" name="end_date" value="{{ end_date }}" class="form-control" placeholder="End Date">
+      </div>
+
+      <!-- Submit Button -->
+      <div class="col-md-12 mt-3">
+        <button type="submit" class="btn btn-primary w-20">Filter</button>
+        <!-- Clear Button with JavaScript Reset -->
+        <button type="submit" class="btn btn-secondary w-20" onclick="resetFilters()">Clear</button>
+      </div>
+    </div>
+  </form>
+  <script>
+    // JavaScript function to reset all filters
+    function resetFilters() {
+         // Set all filter inputs to empty values
+    document.querySelector('input[name="search"]').value = "";
+    document.querySelector('select[name="category"]').value = "";
+    document.querySelector('input[name="start_date"]').value = "";
+    document.querySelector('input[name="end_date"]').value = "";
+
+    // Submit the form with empty values
+    document.getElementById("filter-form").submit();
+    }
+  </script>
+  <!-- Customer Table -->
+  <table class="table table-striped table-bordered">
+    <thead class="thead-dark">
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Total Due Amount</th>
+        <th>Total Paid Amount</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for customer in customers %}
+        <tr>
+          <td>{{ customer.name }}</td>
+          <td>{{ customer.get_category_display }}</td>
+          <td>{{ customer.created_at }}</td>
+          <td>{{ customer.updated_at }}</td>
+          <td>{{ customer.total_due }}</td>
+          <td>{{ customer.total_paid }}</td>
+          <td>
+            <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-info btn-sm">Details</a> |
+            <a href="{% url 'customer_edit' customer.pk %}" class="btn btn-warning btn-sm">Edit</a> |
+            <a href="{% url 'customer_delete' customer.pk %}" onclick="return confirm('Are you sure you want to delete this customer?')" class="btn btn-danger btn-sm">Delete</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <!-- Pagination -->
+  <div class="pagination">
+    <span class="step-links">
+      {% if customers.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ customers.previous_page_number }}">previous</a>
+      {% endif %}
+      <span class="current">
+        Page {{ customers.number }} of {{ customers.paginator.num_pages }}.
+      </span>
+      {% if customers.has_next %}
+        <a href="?page={{ customers.next_page_number }}">next</a>
+        <a href="?page={{ customers.paginator.num_pages }}">last &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+
+{% endblock %}

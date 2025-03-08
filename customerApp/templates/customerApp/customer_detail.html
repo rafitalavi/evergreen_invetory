@@ -1,0 +1,105 @@
+{% extends 'index.html' %}
+
+{% block content %}
+  <h2>Customer Details</h2>
+  
+  <h4>Name: {{ customer.name }}</h4>
+  <p>Category: {{ customer.get_category_display }}</p>
+  <p>Created At: {{ customer.created_at }}</p>
+  <p>Updated At: {{ customer.updated_at }}</p>
+  <p>Total Due Amount: {{ customer.total_due }}</p>
+  <p>Total Paid Amount: {{ customer.total_paid }}</p>
+
+  <!-- {% if customer.category == 'buyer' %}
+    <h3>Buyer Due: {{ buyer_due }}</h3>
+  {% elif customer.category == 'seller' %}
+    <h3>Seller Due: {{ seller_due }}</h3>
+  {% endif %} -->
+  
+  <h3>Purchase Order Items (PIO List)</h3>
+
+  <!-- Filter Form for PIO List -->
+  <form method="GET" class="filter-form">
+    <div class="form-group">
+      <label for="start_date">Start Date:</label>
+      <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label for="end_date">End Date:</label>
+      <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+    </div>
+    <div class="form-group">
+        <label for="pio_number">Search by PIO Number:</label>
+        <input type="text" name="pio_number" id="pio_number" value="{{ pio_number }}" class="form-control" placeholder="Enter PIO Number">
+    </div>
+  
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+
+  <!-- PIO List Table -->
+  <table class="table table-striped">
+    <thead>
+        <tr>
+            <th>PIO Number</th>
+            <th>
+                {% if customer.category == 'buyer' %}
+                    Buyer Due
+                {% else %}
+                    Seller Due
+                {% endif %}
+            </th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+      {% for pio in page_obj %}
+        <tr>
+          <td>{{ pio.pio_number }}</td>
+          <td>{% if customer.category == 'buyer' %}
+            {{ pio.buyer_due }}
+        {% else %}
+        {{ pio.seller_due }}
+        {% endif %}</td>
+        
+          <td>{{ pio.created_at }}</td>
+          <td>{{ pio.updated_at }}</td>
+          <td>
+            <!-- Create Transaction Button -->
+            <a href="{% url 'pio_details' pio.id %}" class="btn btn-primary btn-sm">View Transactions</a>
+
+            <a href="{% url 'create_transaction' customer.id pio.id %}" class="btn btn-success btn-sm">Create Transaction</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5">No Purchase Order Items found for this customer.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination Links -->
+  <div class="pagination">
+    <span class="step-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">previous</a>
+      {% endif %}
+      
+      <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">last &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+
+  <a href="{% url 'customer_list' %}" class="btn btn-secondary">Back to Customer List</a>
+
+{% endblock %}

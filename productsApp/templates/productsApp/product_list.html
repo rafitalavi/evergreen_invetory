@@ -4,13 +4,16 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center">Product List</h2>
+    <h1 class="text-center">Product List</h1>
 
-    <!-- Search Bar -->
+    <!-- Search & Date Filter -->
     <div class="d-flex justify-content-between mb-3">
         <a href="{% url 'product_create' %}" class="btn btn-primary">Add Product</a>
-        <form method="GET" class="d-flex" style="max-width: 400px;">
+
+        <form method="GET" class="d-flex align-items-center">
             <input type="text" name="q" class="form-control me-2" placeholder="Search products..." value="{{ request.GET.q }}">
+            <input type="date" name="start_date" class="form-control me-2" value="{{ start_date }}" placeholder="Start Date">
+            <input type="date" name="end_date" class="form-control me-2" value="{{ end_date }}" placeholder="End Date">
             <button type="submit" class="btn btn-outline-success">Search</button>
         </form>
     </div>

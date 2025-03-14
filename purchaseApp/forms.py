@@ -1,57 +1,43 @@
 from django import forms
+from django.forms import inlineformset_factory
 from .models import Purchase, PurchaseItem
 from productsApp.models import Product
 from customerApp.models import Customer ,Pio
+class PioForm(forms.ModelForm):
+    class Meta:
+        model = Pio
+        fields = ['pio_number', 'customer']
 class PurchaseForm(forms.ModelForm):
+      # Or form # User inputs PIO number manually
+
     class Meta:
         model = Purchase
-        fields = ['customer', 'pio_number', 'total_price']  # Add or remove fields as needed
-        widgets = {
-            'created_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'updated_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        }
-
+        fields = ['customer', 'pio_number']
+   
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Automatically assign a new PIO if no PIO exists
-        if not self.instance.pk and not self.instance.pio_number:
-            self.instance.pio_number = Pio.objects.create(total_amount=None, buyer_due=None, seller_due=None)
+            super().__init__(*args, **kwargs)
             
-        if 'customer' in self.fields:
-            self.fields['customer'].queryset = Customer.objects.all()
-            
-    def clean(self):
-        cleaned_data = super().clean()
-        total_price = cleaned_data.get('total_price')
-
-        # Calculate total_price if not provided and items exist
-        if not total_price:
-            self.instance.total_price = sum(item.total_price for item in self.instance.items.all())
-        
-        return cleaned_data
-
+            # Customize the queryset for the 'customer' field
+            self.fields['customer'].queryset = Customer.objects.filter(category='seller')  # Example: show only buyers
+ # Modify this as needed
+    # def clean_pio_number(self):
+    #     pio_number = self.cleaned_data.get('pio_number')
+    #     if Pio.objects.filter(pio_number=pio_number).exists():  # Check if PIO number already exists
+    #         raise forms.ValidationError('This PIO number already exists.')
+    #     return pio_number
 class PurchaseItemForm(forms.ModelForm):
     class Meta:
         model = PurchaseItem
-        fields = ['purchase', 'product', 'quantity', 'buy_price', 'total_price']
-        widgets = {
-            'total_price': forms.NumberInput(attrs={'readonly': 'readonly'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Ensure 'purchase' is read-only if already part of the form (e.g., when editing)
-        if 'purchase' in self.initial:
-            self.fields['purchase'].widget.attrs['readonly'] = 'readonly'
-
+        fields = ['id', 'product', 'quantity', 'buy_price']
+    
     def clean(self):
         cleaned_data = super().clean()
         quantity = cleaned_data.get('quantity')
         buy_price = cleaned_data.get('buy_price')
-        
-        if quantity and buy_price:
-            cleaned_data['total_price'] = quantity * buy_price
-        else:
-            raise forms.ValidationError("Quantity and Buy Price must be provided.")
+
+        if quantity is None or quantity <= 0:
+            self.add_error('quantity', "Quantity must be greater than 0.")
+        if buy_price is None or buy_price <= 0:
+            self.add_error('buy_price', "Buy Price must be greater than 0.")
 
         return cleaned_data

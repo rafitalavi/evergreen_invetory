@@ -1,0 +1,138 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<h2>Create PIO</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ pio_form.as_p }}
+    <button type="submit" name="create_pio">Create PIO</button>
+</form>
+
+{% if pio_form.instance %}
+    <h2>Create Purchase</h2>
+    <form method="post" id="purchase-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {{ formset.management_form }}
+
+        <!-- Product Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered" id="purchase-items-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Buy Price</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                        <tr class="purchase-item">
+                            <td>{{ form.product }}</td>
+                            <td>
+                                <input type="number" class="form-control quantity" name="{{ form.quantity.html_name }}" value="{{ form.quantity.value|default:'' }}">
+                            </td>
+                            <td>
+                                <input type="number" class="form-control buy_price" name="{{ form.buy_price.html_name }}" value="{{ form.buy_price.value|default:'' }}" step="0.01">
+                            </td>
+                            <td>
+                                <input type="number" class="form-control total_price" readonly>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger remove-item">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button type="button" class="btn btn-success" id="add-item">Add Item</button>
+        <h4 class="mt-4">Grand Total: <span id="grand-total">0.00</span> BDT</h4>
+        <button type="submit" class="btn btn-success mt-3">Create Purchase</button>
+    </form>
+{% endif %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Update total price when quantity or buy price changes
+        function updateTotalPrice() {
+            let grandTotal = 0;
+            $(".purchase-item").each(function() {
+                let quantity = parseFloat($(this).find(".quantity").val()) || 0;
+                let buy_price = parseFloat($(this).find(".buy_price").val()) || 0;
+                let total_price = quantity * buy_price;
+                $(this).find(".total_price").val(total_price.toFixed(2));
+                grandTotal += total_price;
+            });
+            $("#grand-total").text(grandTotal.toFixed(2));
+        }
+
+        // Trigger total price calculation on input
+        $(document).on("input", ".quantity, .buy_price", updateTotalPrice);
+
+        // Add new item row to the table
+        $("#add-item").click(function() {
+            let rowCount = $("#purchase-items-table tbody tr").length;
+            let newRow = $(".purchase-item:first").clone();
+
+            // Clear input values
+            newRow.find("input").val("");
+            newRow.find(".total_price").val("0.00");
+
+            // Update field names to reflect the new formset index
+            newRow.find("input, select").each(function() {
+                let name = $(this).attr("name");
+                if (name) {
+                    let newName = name.replace(/-\d+-/, `-${rowCount}-`);
+                    $(this).attr("name", newName).attr("id", newName);
+                }
+            });
+
+            $("#purchase-items-table tbody").append(newRow);
+
+            // Update formset management form
+            let managementForm = $("input[name='form-TOTAL_FORMS']");
+            managementForm.val(parseInt(managementForm.val()) + 1);
+
+            updateTotalPrice();
+        });
+
+        // Remove item row
+        $(document).on("click", ".remove-item", function() {
+            if ($(".purchase-item").length > 1) {
+                $(this).closest("tr").remove();
+
+                // Update formset management form
+                let managementForm = $("input[name='form-TOTAL_FORMS']");
+                managementForm.val(parseInt(managementForm.val()) - 1);
+
+                updateTotalPrice();
+            }
+        });
+
+        // Prevent form submission if fields are empty
+        $("#purchase-form").submit(function(event) {
+            let valid = true;
+            $(".purchase-item").each(function() {
+                let quantity = $(this).find(".quantity").val().trim();
+                let buy_price = $(this).find(".buy_price").val().trim();
+                if (quantity === "" || buy_price === "") {
+                    valid = false;
+                    $(this).addClass("table-danger");
+                } else {
+                    $(this).removeClass("table-danger");
+                }
+            });
+
+            if (!valid) {
+                alert("Please fill in all required fields before submitting.");
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Purchase Details</h2>
+
+    <!-- Purchase Details Card -->
+    <div class="card mb-4 shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Purchase Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>PIO Number:</strong> {{ purchase.pio_number }}</p>
+                    <p><strong>Customer:</strong> {{ purchase.customer }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Total Price:</strong> {{ purchase.total_price }} BDT</p>
+                    <p><strong>Date:</strong> {{ purchase.date }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Items Table -->
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">Purchase Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Buy Price</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in purchase_items %}
+                            <tr>
+                                <td>{{ item.product }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.buy_price }} BDT</td>
+                                <td>{{ item.total_price }} BDT</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{% url 'purchase_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Purchase List
+        </a>
+    </div>
+</div>
+
+{% endblock %}

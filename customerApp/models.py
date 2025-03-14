@@ -56,15 +56,18 @@ class Customer(models.Model):
 class Pio(models.Model):
     id = models.AutoField(primary_key=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="pios", null=True, blank=True)
-    pio_number = models.CharField(max_length=50, null=True, blank=True)
+    pio_number = models.CharField(max_length=50,  null=True, blank=True)  
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, null=True, blank=True)
     buyer_due = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, null=True, blank=True)
+    total_paid_pio = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, null=True, blank=True)
     seller_due = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-
+    class Meta:
+        ordering = ['-created_at']
     def __str__(self):
-        return f"{self.pio_number} ({self.customer.name})" if self.pio_number else "Unnamed PIO"
+        customer_name = self.customer.name if self.customer else "No Customer"
+        return f"{self.pio_number} ({customer_name})" if self.pio_number else "Unnamed PIO"
 
     def update_due(self):
         """Update due amounts for both buyer and seller."""
@@ -100,7 +103,11 @@ class Pio(models.Model):
         except Exception as e:
             print(f"Error updating due: {e}")
 
-
+    def save(self, *args, **kwargs):
+        if not self.pio_number:
+            # Ensure pio_number is set before saving if not provided
+            self.pio_number = f"PIO-{self.id}"  # Example strategy: You can modify this logic
+        super().save(*args, **kwargs)
 #### `Transaction` Model:
 
 class Transaction(models.Model):
@@ -119,7 +126,8 @@ class Transaction(models.Model):
     transaction_type = models.CharField(max_length=5, choices=BUY_SELL_CHOICES, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-
+    class Meta:
+        ordering = ['-created_at']
     def __str__(self):
         return f"Transaction {self.transaction_id} - {self.pio.pio_number} ({self.transaction_type})"
 
@@ -136,7 +144,10 @@ class Transaction(models.Model):
         # Ensure PIO exists before trying to update its due
         if self.pio:
             print(f"Saving Transaction for PIO {self.pio.pio_number}")
+            
 
+            # Update total_paid for the PIO
+            self.pio.total_paid_pio += self.amount
             # Subtract only the current transaction amount
             if self.transaction_type == "sell":
                 self.pio.buyer_due = max(0, self.pio.buyer_due - self.amount)

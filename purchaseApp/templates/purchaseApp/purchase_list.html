@@ -1,0 +1,39 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<body class="container mt-4">
+    <h2>Purchase List</h2>
+    <a href="{% url 'purchase_create' %}" class="btn btn-primary mb-3">Create New Purchase</a>
+    
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Customer</th>
+                <th>PIO Number</th>
+                <th>Total Price</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ purchase.customer.name }}</td>
+                <td>{{ purchase.pio_number.pio_number }}</td>
+                <td>{{ purchase.total_price }}</td>
+                <td>{{ purchase.created_at }}</td>
+                <td>
+                    <a href="{% url 'purchase_detail' purchase.id %}" class="btn btn-info btn-sm">View</a>
+                    <a href="{% url 'purchase_update' purchase.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{% url 'purchase_delete' purchase.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+{% endblock %}

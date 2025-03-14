@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'productsApp',
     'purchaseApp',
     'customerApp',
+    'sellApp',
 ]
 
 MIDDLEWARE = [
@@ -82,12 +83,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Dhaka'  # Bangladesh local time
 
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static Files Configuration
 STATIC_URL = '/static/'

@@ -7,7 +7,9 @@ from productsApp.models import Product
 from customerApp.models import Customer, Pio
 from .forms import   PurchaseForm ,PurchaseItemForm , PioForm
 
-
+from django.core.paginator import Paginator
+from django.db.models import Q
+from datetime import datetime
 
 
 def purchase_create(request, pio_id=None):
@@ -114,9 +116,47 @@ def purchase_create(request, pio_id=None):
 
 #     return render(request, 'purchaseApp/purchase_form.html', {'form': form})
 
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Q
+from datetime import datetime
+from .models import Purchase
+
 def purchase_list(request):
     purchases = Purchase.objects.all().order_by('-created_at')
-    return render(request, 'purchaseApp/purchase_list.html', {'purchases': purchases})
+
+    # Get search query parameters
+    search_pio = request.GET.get('pio_number', '')
+    search_customer = request.GET.get('customer_name', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+
+    # Filtering
+    if search_pio:
+        purchases = purchases.filter(pio_number__icontains=search_pio)
+    if search_customer:
+        purchases = purchases.filter(customer__name__icontains=search_customer)
+    if start_date and end_date:
+        try:
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+            purchases = purchases.filter(created_at__range=[start_date_obj, end_date_obj])
+        except ValueError:
+            pass  # Ignore invalid date formats
+
+    # Pagination (10 items per page)
+    paginator = Paginator(purchases, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'purchaseApp/purchase_list.html', {
+        'purchases': page_obj,
+        'search_pio': search_pio,
+        'search_customer': search_customer,
+        'start_date': start_date,
+        'end_date': end_date,
+    })
+
 #details
 def purchase_detail(request, pk):
     purchase = get_object_or_404(Purchase, pk=pk)

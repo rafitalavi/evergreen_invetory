@@ -12,6 +12,7 @@ class PurchaseItemInline(admin.TabularInline):
         # Override this method to make the total price field read-only
         return super().get_queryset(request).select_related('product')
 
+
 from django.db import transaction
 
 class PurchaseAdmin(admin.ModelAdmin):
@@ -46,6 +47,7 @@ class PurchaseAdmin(admin.ModelAdmin):
             # Update customer's total due
             obj.customer.total_due = sum(p.total_price for p in obj.customer.purchases.all())
             obj.customer.save(update_fields=['total_due'])
+            
 
 class PurchaseItemAdmin(admin.ModelAdmin):
     list_display = ['purchase', 'product', 'quantity', 'buy_price', 'total_price']

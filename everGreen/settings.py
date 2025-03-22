@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'sellApp',
     "crispy_forms",
     'crispy_bootstrap5', 
+    "expenseApp",
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 MIDDLEWARE = [

@@ -1,0 +1,46 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Create Expense</h2>
+    
+    <div class="card shadow p-4">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.name.label }}</label>
+                {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.amount.label }}</label>
+                {{ form.amount }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.date.label }}</label>
+                {{ form.date }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.description.label }}</label>
+                {{ form.description }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Expense</button>
+            <a href="{% url 'expense_list' %}" class="btn btn-secondary">Back to Expense List</a>
+        </form>
+    </div>
+</div>
+
+<!-- Bootstrap Form Styling -->
+<style>
+    input, textarea, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}

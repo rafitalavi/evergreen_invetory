@@ -1,0 +1,28 @@
+{% extends 'index.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Update Sale</h2>
+    <form method="POST" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="card p-3 mb-4">
+            <h4>Sale Details</h4>
+            {{ form.as_p }}
+        </div>
+        
+        <div class="card p-3 mb-4">
+            <h4>Sale Items</h4>
+            <div id="sale-items-container">
+                {% for item_form in item_forms %}
+                    <div class="sale-item border p-2 mb-2">
+                        {{ item_form.as_p }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Update Sale</button>
+        <a href="{% url 'sale_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

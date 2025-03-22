@@ -1,0 +1,83 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Expense & Profit Summary</h2>
+
+    <!-- Create Expense Button -->
+    <a href="{% url 'create_expense' %}" class="btn btn-success mb-4">Create Expense</a>
+
+    <!-- 🔍 Filter Form -->
+    <form method="GET" class="mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" name="q" class="form-control" placeholder="Search by expense name" value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="min_amount" class="form-control" placeholder="Min Amount" value="{{ min_amount }}">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="max_amount" class="form-control" placeholder="Max Amount" value="{{ max_amount }}">
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3 mt-2">
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3 mt-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- 📌 Profit Summary Section -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-4">
+            <div class="p-3 bg-success text-white rounded shadow">
+                <h3 class="fw-bold">Gross Total Profit:</h3>
+                <h2>${{ total_profit }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-danger text-white rounded shadow">
+                <h3 class="fw-bold">Total Expenses:</h3>
+                <h2>${{ total_expenses }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-primary text-white rounded shadow">
+                <h3 class="fw-bold">Net Profit:</h3>
+                <h2>${{ net_profit }}</h2>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- 📌 Expense List -->
+    <h3 class="mb-3">Expense List</h3>
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ expense.date }}</td>
+                <td>{{ expense.name }}</td>
+                <td>${{ expense.amount }}</td>
+                <td>
+                    <a href="{% url 'expense_edit' expense.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{% url 'expense_delete' expense.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

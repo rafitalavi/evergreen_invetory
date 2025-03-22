@@ -64,8 +64,84 @@ def sale_detail(request, pk):
     # Pass the sale object and total profit to the template context
     return render(request, 'sellApp/sale_detail.html', {'sale': sale, 'total_profit': total_profit})
 
-def sale_update(post,pk):
-    pass
+from django.db import transaction
+
+def sale_update(request, pk):
+    sale = get_object_or_404(Sale, id=pk)
+    previous_sale_items = {item.id: item for item in sale.items.all()}  # Store previous items
+
+    if request.method == 'POST':
+        form = SaleForm(request.POST, instance=sale)
+        item_forms = [SaleItemForm(request.POST, prefix=str(item.id), instance=item) for item in previous_sale_items.values()]
+
+        if form.is_valid() and all(item_form.is_valid() for item_form in item_forms):
+            with transaction.atomic():
+                total_sell_price = 0
+                total_profit = 0
+                updated_items = set()  # Track updated item IDs
+
+                # Process updated sale items
+                for item_form in item_forms:
+                    if item_form.has_changed():
+                        item = item_form.save(commit=False)
+                        updated_items.add(item.id)
+
+                        # Adjust stock before updating quantity
+                        old_item = previous_sale_items.get(item.id)
+                        if old_item:
+                            old_item.product.stock += old_item.quantity  # Restore old stock
+                            old_item.product.save(update_fields=['stock'])
+
+                        # Update item
+                        item.total_price = item.quantity * item.sell_price if item.quantity and item.sell_price else 0
+                        item.total_profit = item.quantity * (item.sell_price - item.buy_price) if item.quantity and item.sell_price and item.buy_price else 0
+                        item.save()
+
+                        # Deduct new quantity from stock
+                        item.product.stock -= item.quantity
+                        item.product.save(update_fields=['stock'])
+
+                        total_sell_price += item.total_price
+                        total_profit += item.total_profit
+
+                # Restore stock for removed items
+                for item_id, old_item in previous_sale_items.items():
+                    if item_id not in updated_items:
+                        old_item.product.stock += old_item.quantity  # Restore stock for deleted item
+                        old_item.product.save(update_fields=['stock'])
+                        old_item.delete()  # Remove item from sale
+
+                # Update Sale instance
+                sale.total_sell_price = total_sell_price
+                sale.total_profit = total_profit
+                form.save()
+
+                # Update PIO and customer due amounts
+                if sale.pio_number:
+                    sale.pio_number.total_amount = sale.total_sell_price
+                    if sale.customer:
+                        if sale.customer.category == 'buyer':
+                            sale.pio_number.buyer_due = sale.total_sell_price
+                        else:
+                            sale.pio_number.seller_due = sale.total_sell_price
+                    sale.pio_number.save(update_fields=['total_amount', 'buyer_due', 'seller_due'])
+
+                if sale.customer:
+                    sale.customer.total_due = sum(s.total_sell_price for s in sale.customer.sales.all())
+                    sale.customer.save(update_fields=['total_due'])
+
+                return redirect('sale_detail', pk=sale.id)
+
+    else:
+        form = SaleForm(instance=sale)
+        item_forms = [SaleItemForm(prefix=str(item.id), instance=item) for item in sale.items.all()]
+
+    return render(request, 'sellApp/update_sale.html', {
+        'form': form,
+        'sale': sale,
+        'item_forms': item_forms,
+    })
+
 def sale_delete(post,pk):
     pass
 def sale_create(request, pio_id=None):

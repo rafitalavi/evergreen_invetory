@@ -42,7 +42,7 @@
                 <tbody id="sale-items">
                     {% for form in formset %}
                     <tr class="sale-item">
-                        <td>{{ form.product|as_crispy_field }}</td>
+                        <td>{{ form.product }}</td>
                         <td>
                             <input type="number" class="form-control quantity" name="{{ form.quantity.html_name }}" value="{{ form.quantity.value|default:'' }}">
                         </td>

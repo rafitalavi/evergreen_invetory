@@ -9,6 +9,11 @@ class PioForm(forms.ModelForm):
     class Meta:
         model = Pio
         fields = ['pio_number', 'customer']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['customer'].queryset = Customer.objects.filter(category='buyer')
+
 class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale

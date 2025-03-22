@@ -63,13 +63,18 @@ class SaleItem(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, editable=False, null=True, blank=True)
     profit_per_item = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_profit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
+    buy_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     def save(self, *args, **kwargs):
         with transaction.atomic():
+            if not self.buy_price:
+                self.buy_price = self.product.purchase_price if self.product else 0
+
             # Calculate total_price, profit_per_item, and total_profit
             self.total_price = (self.quantity or 0) * (self.sell_price or 0)
+            self.sell_price = self.sell_price or 0 
+            self.buy_price = self.buy_price or 0
             if self.product:
-                self.profit_per_item = (self.sell_price or 0) - (self.product.purchase_price or 0)
+                self.profit_per_item = (self.sell_price or 0) - (self.buy_price or 0)
                 self.total_profit = (self.quantity or 0) * self.profit_per_item
             else:
                 self.profit_per_item = None
@@ -79,6 +84,6 @@ class SaleItem(models.Model):
             super().save(*args, **kwargs)
 
             # Update the product stock if the product exists
-            if self.product and self.quantity:
-                self.product.stock -= self.quantity or 0
-                self.product.save(update_fields=['stock'])
+            # if self.product and self.quantity:
+            #     self.product.stock -= self.quantity or 0
+            #     self.product.save(update_fields=['stock'])

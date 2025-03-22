@@ -1,0 +1,161 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Create Sale</h2>
+
+    <!-- PIO Form -->
+    <div class="card mb-3">
+        <div class="card-header bg-primary text-white">PIO Information</div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">{{ pio_form.pio_number|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ pio_form.customer|as_crispy_field }}</div>
+                </div>
+                <button type="submit" name="create_pio" class="btn btn-success">Create PIO</button>
+            </form>
+        </div>
+    </div>
+
+    {% if pio_form.instance %}
+    <h2>Create Sale</h2>
+    <form method="POST" id="sale-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {{ formset.management_form }}
+
+        <!-- Sale Items Formset -->
+        <div class="table-responsive">
+            <table class="table table-bordered" id="sale-items-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Sell Price</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sale-items">
+                    {% for form in formset %}
+                    <tr class="sale-item">
+                        <td>{{ form.product|as_crispy_field }}</td>
+                        <td>
+                            <input type="number" class="form-control quantity" name="{{ form.quantity.html_name }}" value="{{ form.quantity.value|default:'' }}">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control sell_price" name="{{ form.sell_price.html_name }}" value="{{ form.sell_price.value|default:'' }}" step="0.01">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control total_price" readonly>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger remove-item">Remove</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button type="button" class="btn btn-success" id="add-item">Add Item</button>
+        <h4 class="mt-4">Grand Total: <span id="grand-total">0.00</span> BDT</h4>
+        <button type="submit" class="btn btn-success mt-3">Create Sale</button>
+    </form>
+    {% endif %}
+</div>
+
+<!-- JavaScript to handle adding/removing sale items dynamically and updating total prices -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Update total price when quantity or sell price changes
+    function updateTotalPrice() {
+        let grandTotal = 0;
+        document.querySelectorAll(".sale-item").forEach(function (item) {
+            let quantity = parseFloat(item.querySelector(".quantity").value) || 0;
+            let sell_price = parseFloat(item.querySelector(".sell_price").value) || 0;
+            let total_price = quantity * sell_price;
+            item.querySelector(".total_price").value = total_price.toFixed(2);
+            grandTotal += total_price;
+        });
+        document.getElementById("grand-total").textContent = grandTotal.toFixed(2);
+    }
+
+    // Trigger total price calculation on input
+    document.addEventListener("input", function (e) {
+        if (e.target.classList.contains("quantity") || e.target.classList.contains("sell_price")) {
+            updateTotalPrice();
+        }
+    });
+
+    // Add new item row to the table
+    document.getElementById("add-item").addEventListener("click", function () {
+        let rowCount = document.querySelectorAll("#sale-items-table tbody tr").length;
+        let newRow = document.querySelector(".sale-item").cloneNode(true);
+
+        // Clear input values
+        newRow.querySelectorAll("input").forEach(function (input) {
+            input.value = "";
+        });
+        newRow.querySelector(".total_price").value = "0.00";
+
+        // Update field names to reflect the new formset index
+        newRow.querySelectorAll("input, select").forEach(function (input) {
+            let name = input.getAttribute("name");
+            if (name) {
+                let newName = name.replace(/-\d+-/, `-${rowCount}-`);
+                input.setAttribute("name", newName);
+            }
+        });
+
+        // Update the management form's TOTAL_FORMS to include the new form
+        let totalForms = document.querySelector("#id_form-TOTAL_FORMS");
+        totalForms.value = parseInt(totalForms.value) + 1;
+
+        // Add the new row to the table
+        document.getElementById("sale-items").appendChild(newRow);
+        updateTotalPrice();
+    });
+
+    // Remove item row
+    document.getElementById("sale-items").addEventListener("click", function (e) {
+        if (e.target.classList.contains("remove-item")) {
+            e.target.closest("tr").remove();
+            updateTotalPrice();
+        }
+    });
+
+    // Prevent form submission if fields are empty
+    document.getElementById("sale-form").addEventListener("submit", function (e) {
+        let valid = true;
+        document.querySelectorAll(".sale-item").forEach(function (item) {
+            let quantity = item.querySelector(".quantity").value.trim();
+            let sell_price = item.querySelector(".sell_price").value.trim();
+            if (quantity === "" || sell_price === "") {
+                valid = false;
+                item.classList.add("table-danger");
+            } else {
+                item.classList.remove("table-danger");
+            }
+        });
+
+        if (!valid) {
+            alert("Please fill in all required fields before submitting.");
+            e.preventDefault();
+        }
+    });
+
+    // Prevent form submission if no items are in the sale
+    document.getElementById("sale-form").addEventListener("submit", function (e) {
+        if (document.querySelectorAll(".sale-item").length === 0) {
+            alert("Please add at least one item to the sale.");
+            e.preventDefault();
+        }
+    });
+});
+</script>
+
+{% endblock %}

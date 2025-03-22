@@ -1,0 +1,92 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3 text-center">Sales List</h2>
+
+    <!-- Search Filters -->
+    <form method="GET" class="mb-4 p-3 bg-light rounded shadow-sm">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="pio_number" class="form-control" placeholder="Search PIO Number" value="{{ request.GET.pio_number }}">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="customer_name" class="form-control" placeholder="Search Customer" value="{{ request.GET.customer_name }}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <a href="{% url 'sale_create' %}" class="btn btn-success mb-3">Create New Sale</a>
+
+    <!-- Sales Table -->
+    <div class="table-responsive">
+        <table class="table table-hover shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>Customer</th>
+                    <th>PIO Number</th>
+                    <th>Total Price</th>
+                    <th>Total Profit</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.customer.name }}</td>
+                    <td>{{ sale.pio_number }}</td>
+                    <td>${{ sale.total_sell_price }}</td>
+                    <td>{{ sale.total_profit }}</td>
+                    <td>{{ sale.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                         <!--  Uncomment these if you have view, edit, and delete functionality -->
+                      
+                        <a href="{% url 'sale_detail' sale.id %}" class="btn btn-info btn-sm">View</a>
+                        <a href="{% url 'sale_update' sale.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'sale_delete' sale.id %}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Are you sure you want to delete this sale?');">Delete</a> 
+                       
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No sales found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if sales.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if sales.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ sales.previous_page_number }}">Previous</a></li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ sales.number }} of {{ sales.paginator.num_pages }}</span>
+            </li>
+
+            {% if sales.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ sales.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ sales.paginator.num_pages }}">Last</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

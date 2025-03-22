@@ -1,0 +1,57 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Sale Details</h2>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">Sale Information</div>
+        <div class="card-body">
+            <ul>
+                <li><strong>Customer:</strong> {{ sale.customer }}</li>
+                <li><strong>PIO Number:</strong> {{ sale.pio_number }}</li>
+                <li><strong>Sale Date:</strong> {{ sale.created_at }}</li>
+                <!-- Add more sale details here -->
+            </ul>
+        </div>
+    </div>
+
+   
+<!-- Template for Sale Detail -->
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Sale Items</h2>
+    
+    <div class="card mb-3">
+        <div class="card-header bg-dark text-white">Sale Information</div>
+        <div class="card-body">
+            <h5>Total Profit: ${{ total_profit|floatformat:2 }}</h5>
+            
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Buy Price</th>
+                        <th>Sell Price</th>
+                        <th>Profit</th>
+                        <th>Total Profit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sale.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.buy_price|floatformat:2 }}</td>
+                        <td>${{ item.sell_price|floatformat:2 }}</td>
+                        <td>${{ item.profit_per_item|floatformat:2 }}</td>
+                        <td>${{ item.total_profit|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

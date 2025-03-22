@@ -1,12 +1,23 @@
 {% extends 'index.html' %}
+{% load crispy_forms_tags %}
 {% block content %}
 
-<h2>Create PIO</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ pio_form.as_p }}
-    <button type="submit" name="create_pio">Create PIO</button>
-</form>
+<h2 class="text-center mb-4">Create Sale</h2>
+
+<!-- PIO Form -->
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">PIO Information</div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">{{ pio_form.pio_number|as_crispy_field }}</div>
+                <div class="col-md-6">{{ pio_form.customer|as_crispy_field }}</div>
+            </div>
+            <button type="submit" name="create_pio" class="btn btn-success">Create PIO</button>
+        </form>
+    </div>
+</div>
 
 {% if pio_form.instance %}
     <h2>Create Purchase</h2>
